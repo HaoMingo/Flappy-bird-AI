@@ -185,32 +185,32 @@ def collide(self, bird, win):
 
 class Base:
      
-    VEL = 5
-    WIN_WIDTH = WIN_WIDTH
-    IMG = base_img
+        VEL = 5
+        WIN_WIDTH = WIN_WIDTH
+        IMG = base_img
 
-def __init__(self, y):
+    def __init__(self, y):
         
-    self.y = y
-    self.x1 = 0
-    self.x2 = self.WIDTH
+        self.y = y
+        self.x1 = 0
+        self.x2 = self.WIDTH
 
-def move(self):
+    def move(self):
           
     #move floor so it looks like its scrolling return: None
           
-    self.x1 -= self.VEL
-    self.x2 -= self.VEL
-    if self.x1 + self.WIDTH < 0:
-        self.x1 = self.x2 + self.WIDTH
+        self.x1 -= self.VEL
+        self.x2 -= self.VEL
+        if self.x1 + self.WIDTH < 0:
+            self.x1 = self.x2 + self.WIDTH
     
-    if self.x2 + self.WIDTH < 0:
-        self.x2 = self.x1 + self.WIDTH
+        if self.x2 + self.WIDTH < 0:
+            self.x2 = self.x1 + self.WIDTH
 
-def draw(self, win):
+    def draw(self, win):
           
-    win.blit(self.IMG, (self.x1, self.y))
-    win.blit(self.IMG, (self.x2, self.y))
+        win.blit(self.IMG, (self.x1, self.y))
+        win.blit(self.IMG, (self.x2, self.y))
 
 
 def blitRotateCenter(surf, image, topleft, angle):

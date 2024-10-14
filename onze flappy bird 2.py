@@ -324,6 +324,10 @@ def main(genomes,config):
         ge = []
         birds = []
      # een lijst van 3 variablen om de fitness van de birds te volgen
+with open(best_ge.pickle, rb) as f:
+    pickle.load(f)
+with open(best_net.pickle) as f:
+    pickle.load(f)
 
         for _,g in genomes :
             g.fitness = 0  

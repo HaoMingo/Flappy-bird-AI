@@ -282,16 +282,6 @@ def main(genomes,config):
         birds.append(Bird(230,350))
         ge.append(g)
 #het creëert een neuraal netwerk en een bird en voegt het toe aan de lijst met dezelfde genomes
-
-
-#met dit worden de beste pickles van de vogels onthouden en wordt het voor de main game loop ingevoegd.
-    with open("best_ge.pickle", "rb") as f:
-        nets = [pickle.load(f)] # dit laad de genomes van de file best_ge.pickle
-    with open("best_net.pickle","rb") as f:
-        ge = [pickle.load(f)[1]] # dit laad de netwerks van de file best_net.pickle         
-        
-
-       
       
     bird = Bird(230,350)
     base = Base(FLOOR)

@@ -187,7 +187,6 @@ class Base:
      
     VEL = 5
     WIN_WIDTH = WIN_WIDTH
-    WIDTH = base_img.get_width()
     IMG = base_img
 
 def __init__(self, y):
@@ -281,108 +280,78 @@ def main(genomes,config):
         nets.append(net)
         birds.append(Bird(230,350))
         ge.append(g)
-#het creëert een neuraal netwerk en een bird en voegt het toe aan de lijst met dezelfde genomes
+#het creëert een neuraal netwerk en een bird en voegt het toe aan de lijst met dezelfde genomes    
       
-    bird = Bird(230,350)
     base = Base(FLOOR)
     pipes = [Pipe(700)]
     score = 0
 
     clock = pygame.time.Clock()
-    start = False
-    lost = False
 
     run = True
-    while run:
-        pygame.time.delay(30)
-        clock.tick(60)
+    while run and len(birds) > 0:
+        clock.tick(100)
 
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 run = False
                 pygame.quit()
                 quit()
-                    
+                break
 
-            if event.type == pygame.KEYDOWN and not lost:
-                if event.key == pygame.K_SPACE:
-                    if not start:
-                        start = True
-                    bird.jump()
+        pipe_ind = 0
+        if len(birds) > 0:
+            if len(pipes) > 1 and birds[0].x > pipes[0].x + pipes[0].PIPE_TOP.get_width(): 
+                pipe_ind = 1                                                                 
 
-            # Move Bird, base and pipes
-        if start:
+        for x, bird in enumerate(birds):  # geef elke vogel +0.1 fitness
+            ge[x].fitness += 0.1
             bird.move()
-        if not lost:
-            base.move()
-              
-            pipe_ind = 0
-            if len(birds) > 0:
-                if len(pipes) > 1 and birds[0].x > pipes[0].x + pipes[0].PIPE_TOP.get_width():
-                    pipe_ind = 1
-                      
-               
-               
-                            #bepaald om welke pijp op het scherm te gebruiken. de eerste of de tweede pijp dus.
-                        
 
-            
-    for x,bird in enumerate(birds):
-        bird.move()
-        ge[x].fitness += 0.1
-# dit stimuleert de vogel om niet helemaal omhoog of omlaag te vliegen.
+            # de locatie van de vogel als die moet springen als hij de bovenste en onderste pijp ziet
+            output = nets[birds.index(bird)].activate((bird.y, abs(bird.y - pipes[pipe_ind].height), abs(bird.y - pipes[pipe_ind].bottom)))
+             
+            if output[0] > 0.5:  #17 we maken gebruik van de Tanh functie om te bepalen of ze springen, dus waarde moet tussen 0-1 zijn.
+                bird.jump()
 
-    output = nets[x].activate((bird.y, abs(bird.y - pipes[pipe_ind].height), abs(bird.y - pipes[pipe_ind].bottom)))
-    if output[0] > 0.5: 
-        bird.jump()
-     # dit stuurt een signaal naar het netwerk. deze signaal geeft aan of de vogel omhoog of omlaag te vliegen om de pijp te vermijden.
+        base.move()
 
-                
-    if start:
         rem = []
         add_pipe = False
         for pipe in pipes:
-            for x, bird in enumerate(birds):      
-                if pipe.collide(bird):
-                    ge[x].fitness -= 1
-                    birds.pop(x)
-                    nets.pop(x)
-                    ge.pop(x)
-                                
-#elke keer als een vogel een pijp raakt, wordt er 1 fitness van die vogel verminderd. Dit zorgt ervoor dat vogels die ver komen maar dan nogsteeds tegen een pijp gaan, geen voorkeur krijgen. Vogels op hetzelfde level hebben dan een hogere fitness.
-                                
-    #als een vogel de grond of een pijp raakt, verdwijnt de vogel uit het spel
-        pipe.move()
-                        # check for collision
-    if pipe.collide(bird, win):
-        lost = True
+            pipe.move()
+            # check for collision
+            for bird in birds:
+                if pipe.collide(bird, WIN): # Dit zorgt ervoor dat de vogels een pijp aanraken ook verwijderd wordt van het spel. Hun genome en netwerk ook.
+                    ge[birds.index(bird)].fitness -= 1
+                    nets.pop(birds.index(bird)) # verwijderen van nets
+                    ge.pop(birds.index(bird)) #verwijderen van genomes
+                    birds.pop(birds.index(bird)) #verwijderen van birds
 
-    if pipe.x + pipe.PIPE_TOP.get_width() < 0:
-        rem.append(pipe)
+            if pipe.x + pipe.PIPE_TOP.get_width() < 0:
+                rem.append(pipe)
 
-    if not pipe.passed and pipe.x < bird.x:
-        pipe.passed = True
-        add_pipe = True
+            if not pipe.passed and pipe.x < bird.x:
+                pipe.passed = True
+                add_pipe = True
 
-    if add_pipe:
-        score += 1
-        pipes.append(Pipe(WIN_WIDTH))
-        for g.fitness in ge:
-            g.fitness += 5
-# dit zorgt ervoor dat de vogels een hogere fitness krijgen nadat ze door een pijp zijn gegaan. Dit moedigt de vogels aan om verder te gaan in het spel.
+        if add_pipe: 
+            score += 1
+            for genome in ge:
+                genome.fitness += 5 # na elke pijp krijgt hij een grotere fitness.
+            pipes.append(Pipe(WIN_WIDTH))
+
         for r in rem:
             pipes.remove(r)
 
-    for x,bird in enumerate(birds):    
-        if bird.y + bird_images[0].get_height() - 10 >= FLOOR or bird.y < 0:
-            birds.pop(x)
-            nets.pop(x)
-            ge.pop(x)
-               
+        for bird in birds:
+            if bird.y + bird.img.get_height() - 10 >= FLOOR or bird.y < -50:
+                nets.pop(birds.index(bird)) # verwijderd bird van het spel als het de grond raakt 
+                ge.pop(birds.index(bird))
+                birds.pop(birds.index(bird))
 
-        draw_window(WIN, birds, pipes, base, score, gen)
+        draw_window(WIN, birds, pipes, base, score, gen, pipe_ind)
 
-        end_screen(WIN)
 #na de score 25, wordt de beste vogel in het bestand "best_net.pickle" en in "best_ge.pickle" opgeslagen.
     if score >= 25:
         pickle.dump(ge[0],open("best_ge.pickle","wb"))
